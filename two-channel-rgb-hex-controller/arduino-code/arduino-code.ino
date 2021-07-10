@@ -75,8 +75,8 @@ Channel const CHANNEL_IN_1 = {A5, A6, A7};
 Channel const CHANNEL_IN_2 = {A2, A3, A4};
 
 // RGB PWM output channel pins {R, G, B}
-Channel const CHANNEL_OUT_1 = {6, 5, 3};
-Channel const CHANNEL_OUT_2 = {11, 10, 9};
+Channel const CHANNEL_OUT_1 = {11, 10, 9};
+Channel const CHANNEL_OUT_2 = {6, 5, 3};
 
 // Reads the channel propagation switch state 
 // and returns it in a Mode struct value.
