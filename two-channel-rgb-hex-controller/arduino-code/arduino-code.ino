@@ -28,24 +28,36 @@
 #define MODE_PROPAGATE_CH2 2
 #define MODE_INVERT 3
 
+// I/O RGB/HSV channel pins
 struct Channel {
   int red_hue_pin;
   int green_saturation_pin;
   int blue_value_pin;
 };
 
+// Settings input mode
+//   ch1_hsv: (TRUE) Reads channel 1 in HSV mode
+//            (FALSE) Reads channel 1 in RGB mode
+//   ch2_hsv: (TRUE) Reads channel 2 in HSV mode
+//            (FALSE) Reads channel 2 in RGB mode
+//   propagation: (MODE_DIRECT) Each channel controlled in a direct way
+//                (MODE_PROPAGATE_CH1) Channel 1 settings are propagated into channel 2
+//                (MODE_PROPAGATE_CH2) Channel 2 settings are propagated into channel 1
+//                (MODE_INVERT) Invert channel settings (IN_CH1 -> OUT_CH2 and IN_CH2 -> OUT_CH1)
 struct Mode {
   unsigned char ch1_hsv; // {FALSE, TRUE}
   unsigned char ch2_hsv; // {FALSE, TRUE}
   unsigned char propagation; // {MODE_DIRECT, MODE_PROPAGATE_CH1, MODE_PROPAGATE_CH1, MODE_INVERT}
 };
 
+// Color in Red-Green-Blue values
 struct RGB {
   unsigned char red;
   unsigned char green;
   unsigned char blue;
 };
 
+// Color in Hue-Saturation-Value values
 struct HSV {
   float hue; // [0.0, 360.0]
   float saturation; // [0.0, 1.0]
@@ -66,8 +78,8 @@ Channel const CHANNEL_IN_2 = {A2, A3, A4};
 Channel const CHANNEL_OUT_1 = {6, 5, 3};
 Channel const CHANNEL_OUT_2 = {11, 10, 9};
 
-// Reads the channel propagation switch state
-// and returns it in a readable value.
+// Reads the channel propagation switch state 
+// and returns it in a Mode struct value.
 //
 // IMPORTANT! When digital input pins are in PULL UP mode the logic is inverted:
 // - LOW read value means the circuit is CLOSED (ON, logical TRUE value)
@@ -100,17 +112,16 @@ Mode readMode() {
   return mode;
 }
 
+// Read channel input settings as RGB color
 RGB readRGB(Channel channel) {
   RGB rgb;
   
-  // Read potentiometer analog states
+  // Read potentiometer analog states (10 bit resolution [0, 1023])
   int red_val = analogRead(channel.red_hue_pin);
   int green_val = analogRead(channel.green_saturation_pin);
   int blue_val = analogRead(channel.blue_value_pin);
 
-  // Since the analog input pins read in 10 bit resolution (0-1023)
-  // and PWM output can only be written in 8 bit resolution (0-255),
-  // analog read values must be divided by 4 to fit PWM output resolution.
+  // Convert to RGB values (Red, Green, Blue = [0, 255])
   rgb.red = (unsigned char)round((float)red_val / 4.0);
   rgb.green = (unsigned char)round((float)green_val / 4.0);
   rgb.blue = (unsigned char)round((float)blue_val / 4.0);
@@ -118,14 +129,16 @@ RGB readRGB(Channel channel) {
   return rgb;
 }
 
+// Read channel input settings as HSV color
 HSV readHSV(Channel channel) {
   HSV hsv;
   
-  // Read potentiometer analog states
+  // Read potentiometer analog states (10 bit resolution [0, 1023])
   int hue_val = analogRead(channel.red_hue_pin);
   int saturation_val = analogRead(channel.green_saturation_pin);
   int value_val = analogRead(channel.blue_value_pin);
 
+  // Convert to HSV values (Hue = [0.0, 360.0]; Saturation, Value = [0.0, 1.0])
   hsv.hue = ((float)hue_val * 360.0) / 1024.0;
   hsv.saturation = (float)saturation_val / 1024.0;
   hsv.value = (float)value_val / 1024.0;
@@ -133,6 +146,8 @@ HSV readHSV(Channel channel) {
   return hsv;
 }
 
+// Converts HSV color to RGB
+// (see https://www.programmersought.com/article/7180233406/)
 RGB HSVtoRGB(HSV hsv){
   RGB rgb;
 
@@ -179,6 +194,8 @@ RGB HSVtoRGB(HSV hsv){
   return rgb;
 }
 
+// Read channel input and return always a RGB color
+// if input is read in HSV mode (hsv = TRUE), it is converted to RGB
 RGB readInput(Channel channel, unsigned char hsv) {
   RGB input;
 
@@ -192,8 +209,8 @@ RGB readInput(Channel channel, unsigned char hsv) {
   return input;
 }
 
+// Write RGB color to output channel
 void outputRGB(Channel channel, RGB rgb) {
-  // Write the values onto the PWM pins
   analogWrite(channel.red_hue_pin, rgb.red);
   analogWrite(channel.green_saturation_pin, rgb.green);
   analogWrite(channel.blue_value_pin, rgb.blue);
@@ -201,7 +218,7 @@ void outputRGB(Channel channel, RGB rgb) {
 
 void setup() {
   // Only digital pins must be configured
-  // Set channel selector input pins as INPUT_PULLUP
+  // Set mode selector input pins as INPUT_PULLUP
   pinMode(IN_CH1_PROPAGATE_PIN, INPUT_PULLUP);
   pinMode(IN_CH2_PROPAGATE_PIN, INPUT_PULLUP);
   pinMode(IN_CH1_HSV_PIN, INPUT_PULLUP);
@@ -225,19 +242,19 @@ void loop() {
   RGB input_ch2 = readInput(CHANNEL_IN_2, mode.ch2_hsv);
 
   switch (mode.propagation) {
-    case MODE_DIRECT:
+    case MODE_DIRECT: // IN_CH1 -> OUT_CH1; IN_CH2 -> OUT_CH2
       outputRGB(CHANNEL_OUT_1, input_ch1);
       outputRGB(CHANNEL_OUT_2, input_ch2);
       break;
-    case MODE_PROPAGATE_CH1:
+    case MODE_PROPAGATE_CH1: // IN_CH1 -> OUT_CH1, OUT_CH2
       outputRGB(CHANNEL_OUT_1, input_ch1);
       outputRGB(CHANNEL_OUT_2, input_ch1);
       break;
-    case MODE_PROPAGATE_CH2:
+    case MODE_PROPAGATE_CH2: // IN_CH2 -> OUT_CH1, OUT_CH2
       outputRGB(CHANNEL_OUT_1, input_ch2);
       outputRGB(CHANNEL_OUT_2, input_ch2);
       break;
-    case MODE_INVERT:
+    case MODE_INVERT: // IN_CH1 -> OUT_CH2; IN_CH2 -> OUT_CH1
       outputRGB(CHANNEL_OUT_1, input_ch2);
       outputRGB(CHANNEL_OUT_2, input_ch1);
       break;
