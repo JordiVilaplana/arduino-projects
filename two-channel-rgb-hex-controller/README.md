@@ -16,4 +16,6 @@ the settings on one channel to the other.\
 
 This is an upgrade from the basic RGB controller also available in this repo.
 
+![Protoboard image](./protoboard.jpg "Protoboard image")
+
 _(under construction ....)_
