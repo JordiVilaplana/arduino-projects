@@ -81,11 +81,12 @@ Mode readMode() {
   int switch_ch1_hsl_state = digitalRead(IN_CH1_HSV_PIN);
   int switch_ch2_hsl_state = digitalRead(IN_CH2_HSV_PIN);
 
-  if (switch_ch1_propagate_state == LOW) {
-    mode.propagation += MODE_PROPAGATE_CH1;
-  }
-  if (switch_ch2_propagate_state == LOW) {
-    mode.propagation += MODE_PROPAGATE_CH2;
+  if (switch_ch1_propagate_state == LOW && switch_ch2_propagate_state == LOW) {
+    mode.propagation = MODE_INVERT;
+  } else if (switch_ch1_propagate_state == LOW) {
+    mode.propagation = MODE_PROPAGATE_CH1;
+  } else if (switch_ch2_propagate_state == LOW) {
+    mode.propagation = MODE_PROPAGATE_CH2;
   }
   
   if (switch_ch1_hsl_state == LOW) {
