@@ -30,12 +30,12 @@ struct RGB {
 };
 
 // RGB potentiometer input pins {R, G, B}
-Channel const IN_1 = {A7, A6, A5};
-Channel const IN_2 = {A4, A3, A2};
+Channel const IN_1 = {A3, A4, A5};
+Channel const IN_2 = {A0, A1, A2};
 
 // RGB PWM output pins {R, G, B}
-Channel const OUT_1 = {6, 5, 3};
-Channel const OUT_2 = {11, 10, 9};
+Channel const OUT_1 = {11, 10, 9};
+Channel const OUT_2 = {6, 5, 3};
 
 RGB readInput(Channel input) {
   RGB rgb;
