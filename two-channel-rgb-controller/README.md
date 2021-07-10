@@ -13,6 +13,8 @@ It was first conceived as a controller for a DIY softbox or studio light
 for photography and video production, but can be used for any dual color
 illumination purposes.
 
+![Protoboard image](./protoboard.jpg "Protoboard image")
+
 ## Updates
 
 ### 2021-07-10
